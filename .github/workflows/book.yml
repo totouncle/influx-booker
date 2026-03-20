@@ -12,10 +12,6 @@ jobs:
   book:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: influx-booker
-
     steps:
       - uses: actions/checkout@v4
 
