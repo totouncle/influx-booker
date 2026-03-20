@@ -235,24 +235,31 @@ async function main() {
   console.log('=== Phase 1: 타겟 확인 ===');
   const schedule = JSON.parse(readFileSync(new URL('./schedule.json', import.meta.url)));
   const todayDow = getNZTDayOfWeek();
-  const target = schedule.find(t => t.dayOfWeek === todayDow);
+  const todayTargets = schedule.filter(t => t.dayOfWeek === todayDow);
 
-  if (!target) {
+  if (!todayTargets.length) {
     console.log(`오늘(요일 ${todayDow})에 해당하는 타겟 없음. 종료.`);
     process.exit(0);
   }
+
+  const now = Date.now();
+  const target = todayTargets.find(t => {
+    const openTime = buildOpenTime(new Date(), t.time) + OPEN_OFFSET_MS;
+    return (openTime - now) <= OPEN_WINDOW_MS;
+  });
+
+  if (!target) {
+    const times = todayTargets.map(t => t.time).join(', ');
+    console.log(`오늘 타겟(${times}) 중 오픈 15분 이내인 항목 없음. cron 오발동으로 판단, 종료.`);
+    process.exit(0);
+  }
+
   console.log(`타겟: ${target.className} (${target.instructor}) ${target.time}`);
 
   // 예약 오픈 날짜 = 오늘 + 8일
   const targetDate = addDays(8);
   const openTimeMs = buildOpenTime(new Date(), target.time) + OPEN_OFFSET_MS;
-  const now = Date.now();
   const diffMs = openTimeMs - now;
-
-  if (diffMs > OPEN_WINDOW_MS) {
-    console.log(`오픈까지 ${Math.round(diffMs / 60000)}분 남음. cron 오발동으로 판단, 종료.`);
-    process.exit(0);
-  }
 
   if (diffMs <= 0) {
     console.log('오픈 시각이 이미 지남. 즉시 실행 모드.');

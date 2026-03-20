@@ -2,10 +2,15 @@ name: Influx Auto Booker
 
 on:
   schedule:
-    # NZDT (서머타임, ~4월 첫째 일요일): NZT 19:15 = UTC 06:15
+    # 월/화/수 19:30 클래스 (NZDT: UTC 06:15, NZST: UTC 07:15)
     - cron: '15 6 * * 1,2,3'
-    # NZST (표준시, ~9월 마지막 일요일): NZT 19:15 = UTC 07:15
     - cron: '15 7 * * 1,2,3'
+    # 일 Yoga 11:15 (NZDT: UTC 토 22:00, NZST: UTC 토 23:00)
+    - cron: '0 22 * * 6'
+    - cron: '0 23 * * 6'
+    # 일 Pilates 16:00 (NZDT: UTC 일 02:45, NZST: UTC 일 03:45)
+    - cron: '45 2 * * 0'
+    - cron: '45 3 * * 0'
   workflow_dispatch:
 
 jobs:
