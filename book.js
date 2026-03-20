@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 const ACCOUNTS = [
   { label: '계정1', token: process.env.INFLUX_TOKEN_1 },
   { label: '계정2', token: process.env.INFLUX_TOKEN_2 },
-];
+].filter(a => a.token);
 
 const BASE_URL = 'https://influxapp.com';
 const MAX_ATTEMPTS = 3;
@@ -209,11 +209,12 @@ async function validateTokens() {
   // 임시 facilityGuid (검증용이므로 아무 것이나 사용)
   const dummyGuid = '7928ecb5-f001-4660-adc7-9eb3e36198ee';
 
+  if (!ACCOUNTS.length) {
+    console.error('활성 계정이 없음. INFLUX_TOKEN_1 또는 INFLUX_TOKEN_2를 설정하세요.');
+    process.exit(1);
+  }
+
   for (const account of ACCOUNTS) {
-    if (!account.token) {
-      console.error(`${account.label} 토큰이 환경변수에 없음`);
-      process.exit(1);
-    }
     try {
       await fetchSessions(account.token, dummyGuid, today);
       console.log(`${account.label} 토큰 유효`);
