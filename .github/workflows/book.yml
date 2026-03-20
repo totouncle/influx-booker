@@ -1,0 +1,44 @@
+name: Influx Auto Booker
+
+on:
+  schedule:
+    # NZDT (서머타임, ~4월 첫째 일요일): NZT 19:15 = UTC 06:15
+    - cron: '15 6 * * 1,2,3'
+    # NZST (표준시, ~9월 마지막 일요일): NZT 19:15 = UTC 07:15
+    - cron: '15 7 * * 1,2,3'
+  workflow_dispatch:
+
+jobs:
+  book:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: influx-booker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run booker
+        run: node book.js
+        env:
+          INFLUX_TOKEN_1: ${{ secrets.INFLUX_TOKEN_1 }}
+          INFLUX_TOKEN_2: ${{ secrets.INFLUX_TOKEN_2 }}
+          TZ: Pacific/Auckland
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="❌ InfluxBooker 실패: $(date '+%Y-%m-%d %a')"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

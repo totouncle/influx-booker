@@ -1,0 +1,23 @@
+[
+  {
+    "dayOfWeek": 1,
+    "className": "Pilates",
+    "instructor": "Angela",
+    "time": "19:30",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee"
+  },
+  {
+    "dayOfWeek": 2,
+    "className": "Pump",
+    "instructor": "Angela",
+    "time": "19:30",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee"
+  },
+  {
+    "dayOfWeek": 3,
+    "className": "Yoga",
+    "instructor": "Muni",
+    "time": "19:30",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee"
+  }
+]
