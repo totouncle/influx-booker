@@ -2,15 +2,12 @@ name: Influx Auto Booker
 
 on:
   schedule:
+    # 일 09:30 Aqua deep (NZDT: UTC 토 20:15, NZST: UTC 토 21:15)
+    - cron: '15 20 * * 6'
+    - cron: '15 21 * * 6'
     # 일/월/화 19:30 트리거 → 월/화/수 클래스 (NZDT: UTC 06:15, NZST: UTC 07:15)
     - cron: '15 6 * * 0,1,2'
     - cron: '15 7 * * 0,1,2'
-    # 일 Yoga 11:15 (NZDT: UTC 금 22:15, NZST: UTC 금 23:15)
-    - cron: '15 22 * * 5'
-    - cron: '15 23 * * 5'
-    # 일 Pilates 16:00 (NZDT: UTC 토 03:00, NZST: UTC 토 04:00)
-    - cron: '0 3 * * 6'
-    - cron: '0 4 * * 6'
   workflow_dispatch:
 
 jobs:
