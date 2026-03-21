@@ -5,12 +5,12 @@ on:
     # 월/화/수 19:30 클래스 (NZDT: UTC 06:15, NZST: UTC 07:15)
     - cron: '15 6 * * 1,2,3'
     - cron: '15 7 * * 1,2,3'
-    # 일 Yoga 11:15 (NZDT: UTC 토 22:00, NZST: UTC 토 23:00)
-    - cron: '0 22 * * 6'
-    - cron: '0 23 * * 6'
-    # 일 Pilates 16:00 (NZDT: UTC 일 02:45, NZST: UTC 일 03:45)
-    - cron: '45 2 * * 0'
-    - cron: '45 3 * * 0'
+    # 일 Yoga 11:15 (NZDT: UTC 금 22:15, NZST: UTC 금 23:15)
+    - cron: '15 22 * * 5'
+    - cron: '15 23 * * 5'
+    # 일 Pilates 16:00 (NZDT: UTC 토 03:00, NZST: UTC 토 04:00)
+    - cron: '0 3 * * 6'
+    - cron: '0 4 * * 6'
   workflow_dispatch:
 
 jobs:
