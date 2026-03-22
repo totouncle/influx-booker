@@ -245,8 +245,9 @@ async function main() {
 
   const now = Date.now();
   const target = todayTargets.find(t => {
-    const openTime = buildOpenTime(new Date(), t.time) + OPEN_OFFSET_MS;
-    return (openTime - now) <= OPEN_WINDOW_MS;
+    const openTime = buildOpenTime(new Date(), t.time);
+    const diff = openTime - now;
+    return diff <= OPEN_WINDOW_MS && diff >= -OPEN_WINDOW_MS;
   });
 
   if (!target) {
