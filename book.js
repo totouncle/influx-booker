@@ -225,6 +225,23 @@ async function validateTokens() {
   }
 }
 
+// ── 텔레그램 알림 ────────────────────────────────────────────────────────────
+
+async function sendTelegram(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+  } catch (err) {
+    console.error('텔레그램 알림 실패:', err.message);
+  }
+}
+
 // ── 메인 ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -290,9 +307,22 @@ async function main() {
     ACCOUNTS.map(account => bookForAccount(account, target, targetDate))
   );
 
-  // Phase 5: 결과 리포트
+  // Phase 5: 결과 리포트 + 텔레그램 알림
   console.log('=== Phase 5: 결과 ===');
+  const dateLabel = toDateStr(targetDate);
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const classDay = dayNames[targetDate.getDay()];
+  const lines = results.map((r, i) => {
+    const label = ACCOUNTS[i].label;
+    return r.success
+      ? `✅ ${label} booked`
+      : `❌ ${label} failed (${r.reason})`;
+  });
   const anyFailed = results.some(r => !r.success);
+  const icon = anyFailed ? '❌' : '✅';
+  const msg = `${icon} ${target.className} ${target.time} → ${dateLabel} ${classDay}\n${lines.join('\n')}`;
+  await sendTelegram(msg);
+
   if (anyFailed) {
     process.exit(1);
   }

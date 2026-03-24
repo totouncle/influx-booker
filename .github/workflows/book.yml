@@ -32,17 +32,9 @@ jobs:
         env:
           INFLUX_TOKEN_1: ${{ secrets.INFLUX_TOKEN_1 }}
           INFLUX_TOKEN_2: ${{ secrets.INFLUX_TOKEN_2 }}
-          TZ: Pacific/Auckland
-
-      - name: Notify on success
-        if: success()
-        run: |
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            -d text="✅ InfluxBooker 완료: $(TZ=Pacific/Auckland date '+%Y-%m-%d %a %H:%M')"
-        env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: Pacific/Auckland
 
       - name: Notify on failure
         if: failure()
