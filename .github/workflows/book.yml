@@ -5,9 +5,12 @@ on:
     # 일 09:30 Aqua deep (NZDT: UTC 토 20:15, NZST: UTC 토 21:15)
     - cron: '15 20 * * 6'
     - cron: '15 21 * * 6'
-    # 일/월/화 19:30 트리거 → 월/화/수 클래스 (NZDT: UTC 06:15, NZST: UTC 07:15)
-    - cron: '15 6 * * 0,1,2'
-    - cron: '15 7 * * 0,1,2'
+    # 수 11:30 Mobility 트리거 → 목 클래스 (NZDT: UTC 화 22:15, NZST: UTC 화 23:15)
+    - cron: '15 22 * * 2'
+    - cron: '15 23 * * 2'
+    # 일/월/화/수 저녁 트리거 → 월/화/수/목 클래스 (NZDT: UTC 06:15, NZST: UTC 07:15)
+    - cron: '15 6 * * 0,1,2,3'
+    - cron: '15 7 * * 0,1,2,3'
   workflow_dispatch:
 
 jobs:
