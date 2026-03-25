@@ -2,15 +2,19 @@ name: Influx Auto Booker
 
 on:
   schedule:
-    # 일 09:30 Aqua deep (NZDT: UTC 토 20:15, NZST: UTC 토 21:15)
-    - cron: '15 20 * * 6'
-    - cron: '15 21 * * 6'
-    # 수 11:30 Mobility 트리거 → 목 클래스 (NZDT: UTC 화 22:15, NZST: UTC 화 23:15)
-    - cron: '15 22 * * 2'
-    - cron: '15 23 * * 2'
-    # 일/월/화/수 저녁 트리거 → 월/화/수/목 클래스 (NZDT: UTC 06:15, NZST: UTC 07:15)
-    - cron: '15 6 * * 0,1,2,3'
-    - cron: '15 7 * * 0,1,2,3'
+    # 90분 전 발동 → GitHub 지연(~50분) 감안해도 오픈 전 도착, 코드가 정확한 시각까지 대기
+    # 일 08:00 NZT → Aqua deep 09:30 오픈 대기 (NZDT: UTC 토 19:00, NZST: UTC 토 20:00)
+    - cron: '0 19 * * 6'
+    - cron: '0 20 * * 6'
+    # 수 10:00 NZT → Mobility 11:30 오픈 대기 (NZDT: UTC 화 21:00, NZST: UTC 화 22:00)
+    - cron: '0 21 * * 2'
+    - cron: '0 22 * * 2'
+    # 수 17:15 NZT → Yoga Muni 18:45 오픈 대기 (NZDT: UTC 수 04:15, NZST: UTC 수 05:15)
+    - cron: '15 4 * * 3'
+    - cron: '15 5 * * 3'
+    # 일/월/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
+    - cron: '0 5 * * 0,1,2'
+    - cron: '0 6 * * 0,1,2'
   workflow_dispatch:
 
 jobs:
