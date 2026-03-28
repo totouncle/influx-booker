@@ -10,7 +10,8 @@ const ACCOUNTS = [
 const BASE_URL = 'https://influxapp.com';
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
-const OPEN_WINDOW_MS = 90 * 60 * 1000; // 90분 (GitHub Actions 크론 지연 대응)
+const OPEN_WINDOW_MS = 90 * 60 * 1000;  // 90분 (과거 허용 범위)
+const MAX_FUTURE_MS = 150 * 60 * 1000;  // 150분 (미래 허용 범위)
 const OPEN_OFFSET_MS = 5 * 1000;        // 오픈 후 5초
 const POLL_INTERVAL_MS = 100;
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
@@ -260,67 +261,73 @@ async function main() {
     process.exit(0);
   }
 
+  // 오픈 시각 범위 내 타겟 필터 (과거 90분 ~ 미래 150분)
   const now = Date.now();
-  const target = todayTargets.find(t => {
-    const openTime = buildOpenTime(new Date(), t.time);
-    const diff = openTime - now;
-    return diff <= OPEN_WINDOW_MS && diff >= -OPEN_WINDOW_MS;
-  });
+  const targets = todayTargets
+    .filter(t => {
+      const openTime = buildOpenTime(new Date(), t.time);
+      const diff = openTime - now;
+      return diff >= -OPEN_WINDOW_MS && diff <= MAX_FUTURE_MS;
+    })
+    .sort((a, b) => a.time.localeCompare(b.time));
 
-  if (!target) {
+  if (!targets.length) {
     const times = todayTargets.map(t => t.time).join(', ');
-    console.log(`오늘 타겟(${times}) 중 오픈 15분 이내인 항목 없음. cron 오발동으로 판단, 종료.`);
+    console.log(`오늘 타겟(${times}) 중 범위 내 항목 없음. cron 오발동으로 판단, 종료.`);
     process.exit(0);
   }
 
-  console.log(`타겟: ${target.className} (${target.instructor}) ${target.time}`);
+  console.log(`타겟 ${targets.length}개: ${targets.map(t => `${t.className} ${t.time}`).join(', ')}`);
 
   // 예약 오픈 날짜 = 오늘 + 8일
   const targetDate = addDays(8);
-  const openTimeMs = buildOpenTime(new Date(), target.time) + OPEN_OFFSET_MS;
-  const diffMs = openTimeMs - now;
+  const allResults = [];
 
-  if (diffMs <= 0) {
-    console.log('오픈 시각이 이미 지남. 즉시 실행 모드.');
-  } else {
-    console.log(`오픈 시각까지 ${Math.round(diffMs / 1000)}초 대기...`);
-  }
+  // Phase 2 & 3: 각 타겟별 대기 → 예약 (시간순 순차 처리)
+  for (const target of targets) {
+    console.log(`\n=== ${target.className} (${target.instructor}) ${target.time} ===`);
+    const openTimeMs = buildOpenTime(new Date(), target.time) + OPEN_OFFSET_MS;
+    const diffMs = openTimeMs - Date.now();
 
-  // Phase 2: 대기
-  if (diffMs > 0) {
-    console.log('=== Phase 2: 대기 ===');
-    let lastHeartbeat = Date.now();
-    while (Date.now() < openTimeMs) {
-      if (Date.now() - lastHeartbeat >= HEARTBEAT_INTERVAL_MS) {
-        const remaining = Math.round((openTimeMs - Date.now()) / 1000);
-        console.log(`heartbeat: 오픈까지 ${remaining}초`);
-        lastHeartbeat = Date.now();
+    if (diffMs > 0) {
+      console.log(`오픈까지 ${Math.round(diffMs / 1000)}초 대기...`);
+      let lastHeartbeat = Date.now();
+      while (Date.now() < openTimeMs) {
+        if (Date.now() - lastHeartbeat >= HEARTBEAT_INTERVAL_MS) {
+          const remaining = Math.round((openTimeMs - Date.now()) / 1000);
+          console.log(`heartbeat: ${target.className} 오픈까지 ${remaining}초`);
+          lastHeartbeat = Date.now();
+        }
+        await sleep(POLL_INTERVAL_MS);
       }
-      await sleep(POLL_INTERVAL_MS);
+      console.log('오픈 시각 도달.');
+    } else {
+      console.log('오픈 시각 지남. 즉시 실행.');
     }
-    console.log('오픈 시각 도달.');
-  }
 
-  // Phase 3 & 4: 예약 실행 (두 계정 병렬)
-  console.log('=== Phase 3: 예약 실행 ===');
-  const results = await Promise.all(
-    ACCOUNTS.map(account => bookForAccount(account, target, targetDate))
-  );
+    const results = await Promise.all(
+      ACCOUNTS.map(account => bookForAccount(account, target, targetDate))
+    );
+    allResults.push({ target, results });
+  }
 
   // Phase 5: 결과 리포트 + 텔레그램 알림
-  console.log('=== Phase 5: 결과 ===');
+  console.log('\n=== Phase 5: 결과 ===');
   const dateLabel = toDateStr(targetDate);
   const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const classDay = dayNames[targetDate.getDay()];
-  const lines = results.map((r, i) => {
-    const label = ACCOUNTS[i].label;
-    return r.success
-      ? `✅ ${label} booked`
-      : `❌ ${label} failed (${r.reason})`;
+
+  const msgLines = allResults.map(({ target, results }) => {
+    const acctParts = results.map((r, i) => {
+      const label = ACCOUNTS[i].label;
+      return r.success ? `✅ ${label}` : `❌ ${label}(${r.reason})`;
+    });
+    return `${target.className} ${target.time}: ${acctParts.join(' | ')}`;
   });
-  const anyFailed = results.some(r => !r.success);
+
+  const anyFailed = allResults.some(({ results }) => results.some(r => !r.success));
   const icon = anyFailed ? '❌' : '✅';
-  const msg = `${icon} ${target.className} ${target.time} → ${dateLabel} ${classDay}\n${lines.join('\n')}`;
+  const msg = `${icon} ${dateLabel} ${classDay}\n${msgLines.join('\n')}`;
   await sendTelegram(msg);
 
   if (anyFailed) {
