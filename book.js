@@ -145,7 +145,7 @@ async function bookForAccount(account, target, targetDate) {
     // 이미 예약됨
     if (session.visit?.state === 'booked') {
       console.log(`${tag} → ✅ 이미 예약됨 (session: ${session.id})`);
-      return { success: true, sessionId: session.id };
+      return { success: true, sessionId: session.id, alreadyBooked: true };
     }
 
     // 정원 초과 처리
@@ -326,9 +326,15 @@ async function main() {
   });
 
   const anyFailed = allResults.some(({ results }) => results.some(r => !r.success));
-  const icon = anyFailed ? '❌' : '✅';
-  const msg = `${icon} ${dateLabel} ${classDay}\n${msgLines.join('\n')}`;
-  await sendTelegram(msg);
+  const allAlreadyBooked = allResults.every(({ results }) => results.every(r => r.alreadyBooked));
+
+  if (allAlreadyBooked) {
+    console.log('전부 이미 예약됨 (중복 크론). 텔레그램 스킵.');
+  } else {
+    const icon = anyFailed ? '❌' : '✅';
+    const msg = `${icon} ${dateLabel} ${classDay}\n${msgLines.join('\n')}`;
+    await sendTelegram(msg);
+  }
 
   if (anyFailed) {
     process.exit(1);
