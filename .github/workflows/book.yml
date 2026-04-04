@@ -3,7 +3,10 @@ name: Influx Auto Booker
 on:
   schedule:
     # 90분 전 발동 → GitHub 지연(~50분) 감안해도 오픈 전 도착, 코드가 정확한 시각까지 대기
-    # 일 07:15 NZT → Pilates 08:45 + Aqua deep 09:30 순차 대기 (NZDT: UTC 토 18:15, NZST: UTC 토 19:15)
+    # 토 07:15 NZT → 일요일 클래스 트리거 dayOfWeek:6 (NZDT: UTC 금 18:15, NZST: UTC 금 19:15)
+    - cron: '15 18 * * 5'
+    - cron: '15 19 * * 5'
+    # 일 07:15 NZT → 월요일 클래스 트리거 dayOfWeek:0 (NZDT: UTC 토 18:15, NZST: UTC 토 19:15)
     - cron: '15 18 * * 6'
     - cron: '15 19 * * 6'
     # 수 10:00 NZT → Mobility 11:30 오픈 대기 (NZDT: UTC 화 21:00, NZST: UTC 화 22:00)
