@@ -11,7 +11,7 @@ const BASE_URL = 'https://influxapp.com';
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
 const OPEN_WINDOW_MS = 90 * 60 * 1000;  // 90분 (과거 허용 범위)
-const MAX_FUTURE_MS = 150 * 60 * 1000;  // 150분 (미래 허용 범위)
+const MAX_FUTURE_MS = 180 * 60 * 1000;  // 180분 (미래 허용 범위)
 const OPEN_OFFSET_MS = 5 * 1000;        // 오픈 후 5초
 const POLL_INTERVAL_MS = 100;
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
@@ -305,8 +305,11 @@ async function main() {
       console.log('오픈 시각 지남. 즉시 실행.');
     }
 
+    const eligibleAccounts = target.accountIndices
+      ? ACCOUNTS.filter((_, i) => target.accountIndices.includes(i))
+      : ACCOUNTS;
     const results = await Promise.all(
-      ACCOUNTS.map(account => bookForAccount(account, target, targetDate))
+      eligibleAccounts.map(account => bookForAccount(account, target, targetDate))
     );
     allResults.push({ target, results });
   }
@@ -318,8 +321,11 @@ async function main() {
   const classDay = dayNames[targetDate.getDay()];
 
   const msgLines = allResults.map(({ target, results }) => {
+    const eligible = target.accountIndices
+      ? ACCOUNTS.filter((_, i) => target.accountIndices.includes(i))
+      : ACCOUNTS;
     const acctParts = results.map((r, i) => {
-      const label = ACCOUNTS[i].label;
+      const label = eligible[i].label;
       return r.success ? `✅ ${label}` : `❌ ${label}(${r.reason})`;
     });
     return `${target.className} ${target.time}: ${acctParts.join(' | ')}`;

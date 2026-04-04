@@ -12,6 +12,9 @@ on:
     # 수 17:15 NZT → Yoga Muni 18:45 오픈 대기 (NZDT: UTC 수 04:15, NZST: UTC 수 05:15)
     - cron: '15 4 * * 3'
     - cron: '15 5 * * 3'
+    # 월~금 07:30 NZT → 아침 클래스 오픈 대기 (NZDT: UTC 전날 18:30, NZST: UTC 전날 19:30)
+    - cron: '30 18 * * 0,1,2,3,4'
+    - cron: '30 19 * * 0,1,2,3,4'
     # 일/월/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
     - cron: '0 5 * * 0,1,2'
     - cron: '0 6 * * 0,1,2'
@@ -20,7 +23,7 @@ on:
 jobs:
   book:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
 
