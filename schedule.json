@@ -1,27 +1,11 @@
 [
   {
     "dayOfWeek": 0,
-    "className": "Pilates",
-    "instructor": "Leila",
-    "time": "08:45",
-    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
-    "accountIndices": [0]
-  },
-  {
-    "dayOfWeek": 0,
     "className": "Pump",
     "instructor": "Liesl",
     "time": "10:00",
     "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
     "accountIndices": [1]
-  },
-  {
-    "dayOfWeek": 0,
-    "className": "Aqua deep",
-    "instructor": "Sue",
-    "time": "09:30",
-    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
-    "accountIndices": [0]
   },
   {
     "dayOfWeek": 0,
