@@ -57,14 +57,6 @@
   },
   {
     "dayOfWeek": 3,
-    "className": "Mobility",
-    "instructor": "Bruno",
-    "time": "11:30",
-    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
-    "accountIndices": [0]
-  },
-  {
-    "dayOfWeek": 3,
     "className": "Yoga",
     "instructor": "Muni",
     "time": "18:45",
