@@ -100,9 +100,9 @@ function sessionTime(session) {
 }
 
 function findSession(sessions, target) {
-  // 완전 매칭: className + time + instructor
+  // 완전 매칭: className + time + instructor (trim으로 trailing space 대응)
   const full = sessions.find(s =>
-    s.name === target.className &&
+    s.name.trim() === target.className &&
     sessionTime(s) === target.time &&
     s.instructors?.some(i => i.full_name.startsWith(target.instructor))
   );
@@ -110,7 +110,7 @@ function findSession(sessions, target) {
 
   // fallback: className + time
   return sessions.find(s =>
-    s.name === target.className &&
+    s.name.trim() === target.className &&
     sessionTime(s) === target.time
   ) ?? null;
 }
