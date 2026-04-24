@@ -243,6 +243,23 @@ async function sendTelegram(text) {
   }
 }
 
+// ── 슬랙 알림 ────────────────────────────────────────────────────────────────
+
+async function sendSlack(text) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channelId = 'C0AND38JT2M';
+  if (!token) return;
+  try {
+    await fetch('https://slack.com/api/chat.postMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ channel: channelId, text }),
+    });
+  } catch (err) {
+    console.error('슬랙 알림 실패:', err.message);
+  }
+}
+
 // ── 메인 ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -340,6 +357,7 @@ async function main() {
     const icon = anyFailed ? '❌' : '✅';
     const msg = `${icon} ${dateLabel} ${classDay}\n${msgLines.join('\n')}`;
     await sendTelegram(msg);
+    await sendSlack(msg);
   }
 
   if (anyFailed) {
