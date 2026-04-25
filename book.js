@@ -248,13 +248,16 @@ async function sendTelegram(text) {
 async function sendSlack(text) {
   const token = process.env.SLACK_BOT_TOKEN;
   const channelId = 'C0AND38JT2M';
-  if (!token) return;
+  if (!token) { console.error('슬랙: SLACK_BOT_TOKEN 없음'); return; }
   try {
-    await fetch('https://slack.com/api/chat.postMessage', {
+    const res = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ channel: channelId, text }),
     });
+    const json = await res.json();
+    if (json.ok) console.log('슬랙 발송 성공');
+    else console.error('슬랙 발송 실패:', json.error);
   } catch (err) {
     console.error('슬랙 알림 실패:', err.message);
   }
