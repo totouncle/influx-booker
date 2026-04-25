@@ -351,11 +351,14 @@ async function main() {
   const anyFailed = allResults.some(({ results }) => results.some(r => !r.success));
   const allAlreadyBooked = allResults.every(({ results }) => results.every(r => r.alreadyBooked));
 
-  // [TEST] allAlreadyBooked 스킵 - 테스트 후 원복 필요
-  const icon = anyFailed ? '❌' : '✅';
-  const msg = `${icon} ${dateLabel} ${classDay}\n${msgLines.join('\n')}`;
-  await sendTelegram(msg);
-  await sendSlack(msg);
+  if (allAlreadyBooked) {
+    console.log('전부 이미 예약됨 (중복 크론). 텔레그램 스킵.');
+  } else {
+    const icon = anyFailed ? '❌' : '✅';
+    const msg = `${icon} ${dateLabel} ${classDay}\n${msgLines.join('\n')}`;
+    await sendTelegram(msg);
+    await sendSlack(msg);
+  }
 
   if (anyFailed) {
     process.exit(1);
