@@ -3,8 +3,8 @@ import { readFileSync } from 'fs';
 // ── 설정 ─────────────────────────────────────────────────────────────────────
 
 const ACCOUNTS = [
-  { label: '계정1', token: process.env.INFLUX_TOKEN_1 },
-  { label: '계정2', token: process.env.INFLUX_TOKEN_2 },
+  { label: 'Kibum', token: process.env.INFLUX_TOKEN_1 },
+  { label: 'Haejin', token: process.env.INFLUX_TOKEN_2 },
 ].filter(a => a.token);
 
 const BASE_URL = 'https://influxapp.com';
