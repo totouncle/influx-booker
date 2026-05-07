@@ -18,6 +18,12 @@ on:
     # 월~금 07:30 NZT → 아침 클래스 오픈 대기 (NZDT: UTC 전날 18:30, NZST: UTC 전날 19:30)
     - cron: '30 18 * * 0,1,2,3,4'
     - cron: '30 19 * * 0,1,2,3,4'
+    # 금 06:00 NZT → Circuit 45 HIIT 07:30 오픈 대기 dayOfWeek:5 (NZDT: UTC 목 17:00, NZST: UTC 목 18:00)
+    - cron: '0 17 * * 4'
+    - cron: '0 18 * * 4'
+    # 목 16:15 NZT → Pilates 17:45 오픈 대기 dayOfWeek:4 (NZDT: UTC 목 03:15, NZST: UTC 목 04:15)
+    - cron: '15 3 * * 4'
+    - cron: '15 4 * * 4'
     # 일/월/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
     - cron: '0 5 * * 0,1,2'
     - cron: '0 6 * * 0,1,2'

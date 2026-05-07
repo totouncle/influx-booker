@@ -72,6 +72,22 @@
     "accountIndices": [1]
   },
   {
+    "dayOfWeek": 4,
+    "className": "Pilates",
+    "instructor": "Angela",
+    "time": "17:45",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
+    "accountIndices": [0]
+  },
+  {
+    "dayOfWeek": 5,
+    "className": "Circuit 45 HIIT",
+    "instructor": "Monique",
+    "time": "07:30",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
+    "accountIndices": [0]
+  },
+  {
     "dayOfWeek": 6,
     "className": "Pump",
     "instructor": "",
