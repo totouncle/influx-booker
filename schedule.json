@@ -89,6 +89,14 @@
   },
   {
     "dayOfWeek": 6,
+    "className": "Core Strength",
+    "instructor": "Liesl",
+    "time": "08:00",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
+    "accountIndices": [0]
+  },
+  {
+    "dayOfWeek": 6,
     "className": "Pump",
     "instructor": "",
     "time": "09:00",
