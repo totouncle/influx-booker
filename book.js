@@ -294,6 +294,9 @@ async function main() {
   if (!targets.length) {
     const times = todayTargets.map(t => t.time).join(', ');
     console.log(`오늘 타겟(${times}) 중 범위 내 항목 없음. cron 오발동으로 판단, 종료.`);
+    const msg = `⚠️ 예약 누락 가능성\n타겟(${times})이 범위 밖. 크론 지연 의심.`;
+    await sendTelegram(msg);
+    await sendSlack(msg);
     process.exit(0);
   }
 
