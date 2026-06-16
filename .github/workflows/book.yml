@@ -24,9 +24,14 @@ on:
     # 목 16:15 NZT → Pilates 17:45 오픈 대기 dayOfWeek:4 (NZDT: UTC 목 03:15, NZST: UTC 목 04:15)
     - cron: '15 3 * * 4'
     - cron: '15 4 * * 4'
-    # 일/월/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
-    - cron: '0 5 * * 0,1,2'
-    - cron: '0 6 * * 0,1,2'
+    # 일/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
+    - cron: '0 5 * * 0,2'
+    - cron: '0 6 * * 0,2'
+    # 월 Pump Angela 19:30 전용 — 오픈 직전 발동 (NZDT: UTC 06:30/07:00, NZST: UTC 06:30/07:00)
+    # NZST: UTC 06:30=NZT 18:30(오픈 1h전), UTC 07:00=NZT 19:00(오픈 30분 전)
+    # NZDT: UTC 06:30=NZT 19:30(오픈 정각), UTC 07:00=NZT 20:00(오픈 30분 후)
+    - cron: '30 6 * * 1'
+    - cron: '0 7 * * 1'
   workflow_dispatch:
 
 jobs:
