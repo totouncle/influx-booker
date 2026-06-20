@@ -2,10 +2,12 @@ import { readFileSync } from 'fs';
 
 // ── 설정 ─────────────────────────────────────────────────────────────────────
 
+// 인덱스 고정: accountIndices[0]=Kibum, [1]=Haejin
+// (filter로 거르면 토큰 누락 시 인덱스가 밀려 엉뚱한 계정으로 예약됨 → 위치 불변 유지)
 const ACCOUNTS = [
   { label: 'Kibum', token: process.env.INFLUX_TOKEN_1 },
   { label: 'Haejin', token: process.env.INFLUX_TOKEN_2 },
-].filter(a => a.token);
+];
 
 const BASE_URL = 'https://influxapp.com';
 const MAX_ATTEMPTS = 3;
@@ -210,12 +212,13 @@ async function validateTokens() {
   // 임시 facilityGuid (검증용이므로 아무 것이나 사용)
   const dummyGuid = '7928ecb5-f001-4660-adc7-9eb3e36198ee';
 
-  if (!ACCOUNTS.length) {
+  const active = ACCOUNTS.filter(a => a.token);
+  if (!active.length) {
     console.error('활성 계정이 없음. INFLUX_TOKEN_1 또는 INFLUX_TOKEN_2를 설정하세요.');
     process.exit(1);
   }
 
-  for (const account of ACCOUNTS) {
+  for (const account of active) {
     try {
       await fetchSessions(account.token, dummyGuid, today);
       console.log(`${account.label} 토큰 유효`);
@@ -281,7 +284,7 @@ async function main() {
     process.exit(0);
   }
 
-  // 오픈 시각 범위 내 타겟 필터 (과거 90분 ~ 미래 150분)
+  // 오픈 시각 범위 내 타겟 필터 (과거 90분 ~ 미래 180분)
   const now = Date.now();
   const targets = todayTargets
     .filter(t => {
@@ -329,12 +332,16 @@ async function main() {
     }
 
     const eligibleAccounts = target.accountIndices
-      ? ACCOUNTS.filter((_, i) => target.accountIndices.includes(i))
+      ? target.accountIndices.map(i => ACCOUNTS[i]).filter(Boolean)
       : ACCOUNTS;
     const results = await Promise.all(
-      eligibleAccounts.map(account => bookForAccount(account, target, targetDate))
+      eligibleAccounts.map(account =>
+        account.token
+          ? bookForAccount(account, target, targetDate)
+          : Promise.resolve({ success: false, reason: 'no_token' })
+      )
     );
-    allResults.push({ target, results });
+    allResults.push({ target, accounts: eligibleAccounts, results });
   }
 
   // Phase 5: 결과 리포트 + 텔레그램 알림
@@ -343,19 +350,17 @@ async function main() {
   const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const classDay = dayNames[targetDate.getDay()];
 
-  const msgLines = allResults.map(({ target, results }) => {
-    const eligible = target.accountIndices
-      ? ACCOUNTS.filter((_, i) => target.accountIndices.includes(i))
-      : ACCOUNTS;
+  const msgLines = allResults.map(({ target, accounts, results }) => {
     const acctParts = results.map((r, i) => {
-      const label = eligible[i].label;
+      const label = accounts[i].label;
       return r.success ? `✅ ${label}` : `❌ ${label}(${r.reason})`;
     });
     return `${target.className} ${target.time}: ${acctParts.join(' | ')}`;
   });
 
   const anyFailed = allResults.some(({ results }) => results.some(r => !r.success));
-  const allAlreadyBooked = allResults.every(({ results }) => results.every(r => r.alreadyBooked));
+  const allAlreadyBooked = allResults.length > 0 &&
+    allResults.every(({ results }) => results.length > 0 && results.every(r => r.alreadyBooked));
 
   if (allAlreadyBooked) {
     console.log('전부 이미 예약됨 (중복 크론). 텔레그램 스킵.');
