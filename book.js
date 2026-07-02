@@ -12,7 +12,7 @@ const ACCOUNTS = [
 const BASE_URL = 'https://influxapp.com';
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
-const OPEN_WINDOW_MS = 90 * 60 * 1000;  // 90분 (과거 허용 범위)
+const OPEN_WINDOW_MS = 360 * 60 * 1000; // 6시간 (과거 허용 범위) — GH Actions 지연(최대 6시간+) 대비 보험
 const MAX_FUTURE_MS = 180 * 60 * 1000;  // 180분 (미래 허용 범위)
 const OPEN_OFFSET_MS = 5 * 1000;        // 오픈 후 5초
 const POLL_INTERVAL_MS = 100;
@@ -284,7 +284,7 @@ async function main() {
     process.exit(0);
   }
 
-  // 오픈 시각 범위 내 타겟 필터 (과거 90분 ~ 미래 180분)
+  // 오픈 시각 범위 내 타겟 필터 (과거 6시간 ~ 미래 180분)
   const now = Date.now();
   const targets = todayTargets
     .filter(t => {
