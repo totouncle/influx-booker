@@ -3,18 +3,20 @@ name: Influx Auto Booker
 on:
   schedule:
     # 90분 전 발동 → GitHub 지연(~50분) 감안해도 오픈 전 도착, 코드가 정확한 시각까지 대기
-    # 토 07:15 NZT → 일요일 클래스 트리거 dayOfWeek:6 (NZDT: UTC 금 18:15, NZST: UTC 금 19:15)
-    - cron: '15 18 * * 5'
+    # 토 08:15 NZT → 일요일 Dance 10:00 트리거 dayOfWeek:6 (NZDT: UTC 금 19:15, NZST: UTC 금 20:15)
+    # Dance 10:00만 남아 06:15 발동 시 미래 180분 범위 밖 → 오픈에 더 가깝게 이동
     - cron: '15 19 * * 5'
+    - cron: '15 20 * * 5'
     # 일 07:15 NZT → 월요일 클래스 트리거 dayOfWeek:0 (NZDT: UTC 토 18:15, NZST: UTC 토 19:15)
     - cron: '15 18 * * 6'
     - cron: '15 19 * * 6'
     # 수 10:00 NZT → Mobility 11:30 오픈 대기 (NZDT: UTC 화 21:00, NZST: UTC 화 22:00)
     - cron: '0 21 * * 2'
     - cron: '0 22 * * 2'
-    # 월~금 07:30 NZT → 아침 클래스 오픈 대기 (NZDT: UTC 전날 18:30, NZST: UTC 전날 19:30)
-    - cron: '30 18 * * 0,1,2,3,4'
-    - cron: '30 19 * * 0,1,2,3,4'
+    # 월~수/금 07:30 NZT → 아침 클래스 오픈 대기 (NZDT: UTC 전날 18:30, NZST: UTC 전날 19:30)
+    # 목요일 아침(UTC 수요일)은 타겟 없음 — Haejin 금 Yoga 제거로 dow4 아침 클래스 소멸
+    - cron: '30 18 * * 0,1,2,4'
+    - cron: '30 19 * * 0,1,2,4'
     # 금 06:00 NZT → Circuit 45 HIIT 07:30 오픈 대기 dayOfWeek:5 (NZDT: UTC 목 17:00, NZST: UTC 목 18:00)
     - cron: '0 17 * * 4'
     - cron: '0 18 * * 4'
