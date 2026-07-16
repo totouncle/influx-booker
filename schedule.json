@@ -56,14 +56,6 @@
     "accountIndices": [1]
   },
   {
-    "dayOfWeek": 3,
-    "className": "Yoga",
-    "instructor": "Muni",
-    "time": "18:45",
-    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
-    "accountIndices": [0]
-  },
-  {
     "dayOfWeek": 4,
     "className": "Yoga",
     "instructor": "Millie",
