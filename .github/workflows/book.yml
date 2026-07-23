@@ -20,10 +20,8 @@ on:
     # 금 06:00 NZT → Circuit 45 HIIT 07:30 오픈 대기 dayOfWeek:5 (NZDT: UTC 목 17:00, NZST: UTC 목 18:00)
     - cron: '0 17 * * 4'
     - cron: '0 18 * * 4'
-    # 목 16:15 NZT → Pilates 17:45 오픈 대기 dayOfWeek:4 (NZDT: UTC 목 03:15, NZST: UTC 목 04:15)
-    - cron: '15 3 * * 4'
-    - cron: '15 4 * * 4'
     # 일/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
+    # dow0=Mobility(Martina) 19:30, dow2=Yoga(Muni) 19:30
     - cron: '0 5 * * 0,2'
     - cron: '0 6 * * 0,2'
     # 월 Pump Angela 19:30 전용 — 오픈 직전 발동 (NZDT: UTC 06:30/07:00, NZST: UTC 06:30/07:00)
