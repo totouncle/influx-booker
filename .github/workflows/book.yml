@@ -3,8 +3,9 @@ name: Influx Auto Booker
 on:
   schedule:
     # 90분 전 발동 → GitHub 지연(~50분) 감안해도 오픈 전 도착, 코드가 정확한 시각까지 대기
-    # 토 08:15 NZT → 일요일 Dance 10:00 트리거 dayOfWeek:6 (NZDT: UTC 금 19:15, NZST: UTC 금 20:15)
-    # Dance 10:00만 남아 06:15 발동 시 미래 180분 범위 밖 → 오픈에 더 가깝게 이동
+    # 토 07:15/08:15 NZT → 일요일 클래스 트리거 dayOfWeek:6 (NZDT: UTC 금 19:15, NZST: UTC 금 20:15)
+    # dow6 타겟: Core Strength(Liesl) 08:00 [Kibum], Dance(Alison) 10:00 [Haejin]
+    # 한 런에서 08:00 예약 후 10:00까지 대기(약 2h45m, timeout 200분 이내)
     - cron: '15 19 * * 5'
     - cron: '15 20 * * 5'
     # 일 07:15 NZT → 월요일 클래스 트리거 dayOfWeek:0 (NZDT: UTC 토 18:15, NZST: UTC 토 19:15)
