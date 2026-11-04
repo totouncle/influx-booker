@@ -56,6 +56,14 @@
     "accountIndices": [1]
   },
   {
+    "dayOfWeek": 4,
+    "className": "Yoga",
+    "instructor": "Millie",
+    "time": "09:00",
+    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
+    "accountIndices": [1]
+  },
+  {
     "dayOfWeek": 5,
     "className": "Circuit 45 HIIT",
     "instructor": "Monique",
@@ -70,13 +78,5 @@
     "time": "08:00",
     "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
     "accountIndices": [0]
-  },
-  {
-    "dayOfWeek": 6,
-    "className": "Dance",
-    "instructor": "Alison",
-    "time": "10:00",
-    "facilityGuid": "7928ecb5-f001-4660-adc7-9eb3e36198ee",
-    "accountIndices": [1]
   }
 ]
