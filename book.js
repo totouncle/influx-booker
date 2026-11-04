@@ -123,6 +123,7 @@ async function bookForAccount(account, target, targetDate) {
   const { label, token } = account;
   const { facilityGuid, className, time } = target;
   const tag = `[${label}] ${className} ${time}`;
+  let fullRetries = 0;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     let sessions;
@@ -152,13 +153,14 @@ async function bookForAccount(account, target, targetDate) {
 
     // 정원 초과 처리
     if (session.full) {
-      if (attempt === 1) {
-        console.log(`${tag} → 정원 초과. 5초 후 재확인...`);
+      if (fullRetries < 2) {
+        fullRetries++;
+        console.log(`${tag} → 정원 초과. 5초 후 재확인... (${fullRetries}/2)`);
         await sleep(5000);
         attempt--; // 카운트 소진 없이 재확인
         continue;
       }
-      console.error(`${tag} → ❌ FULL after ${attempt} attempts`);
+      console.error(`${tag} → ❌ FULL after ${attempt} attempts (${fullRetries} full retries)`);
       return { success: false, reason: 'full' };
     }
 
