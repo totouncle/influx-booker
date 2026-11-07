@@ -1,67 +1,89 @@
 name: Influx Auto Booker
+run-name: Influx ${{ inputs.dispatch_key }}
 
 on:
-  schedule:
-    # 90분 전 발동 → GitHub 지연(~50분) 감안해도 오픈 전 도착, 코드가 정확한 시각까지 대기
-    # 토 07:15/08:15 NZT → 일요일 클래스 트리거 dayOfWeek:6 (NZDT: UTC 금 19:15, NZST: UTC 금 20:15)
-    # dow6 타겟: Core Strength(Liesl) 08:00 [Kibum], Dance(Alison) 10:00 [Haejin]
-    # 한 런에서 08:00 예약 후 10:00까지 대기(약 2h45m, timeout 200분 이내)
-    - cron: '15 19 * * 5'
-    - cron: '15 20 * * 5'
-    # 일 07:15 NZT → 월요일 클래스 트리거 dayOfWeek:0 (NZDT: UTC 토 18:15, NZST: UTC 토 19:15)
-    - cron: '15 18 * * 6'
-    - cron: '15 19 * * 6'
-    # 수 10:00 NZT → Mobility 11:30 오픈 대기 (NZDT: UTC 화 21:00, NZST: UTC 화 22:00)
-    - cron: '0 21 * * 2'
-    - cron: '0 22 * * 2'
-    # 월~금 07:30 NZT → 아침 클래스 오픈 대기 (NZDT: UTC 전날 18:30, NZST: UTC 전날 19:30)
-    # dow0(월), dow1(화), dow2(수), dow3(목), dow4(금 수업 오픈)
-    - cron: '30 18 * * 0,1,2,3,4'
-    - cron: '30 19 * * 0,1,2,3,4'
-    # 금 06:00 NZT → Circuit 45 HIIT 07:30 오픈 대기 dayOfWeek:5 (NZDT: UTC 목 17:00, NZST: UTC 목 18:00)
-    - cron: '0 17 * * 4'
-    - cron: '0 18 * * 4'
-    # 일/화 18:00 NZT → 19:30 저녁 클래스 오픈 대기 (NZDT: UTC 05:00, NZST: UTC 06:00)
-    # dow0=Mobility(Martina) 19:30, dow2=Yoga(Muni) 19:30
-    - cron: '0 5 * * 0,2'
-    - cron: '0 6 * * 0,2'
-    # 월 Pump Angela 19:30 전용 — 오픈 직전 발동 (NZDT: UTC 06:30/07:00, NZST: UTC 06:30/07:00)
-    # NZST: UTC 06:30=NZT 18:30(오픈 1h전), UTC 07:00=NZT 19:00(오픈 30분 전)
-    # NZDT: UTC 06:30=NZT 19:30(오픈 정각), UTC 07:00=NZT 20:00(오픈 30분 후)
-    - cron: '30 6 * * 1'
-    - cron: '0 7 * * 1'
   workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [check, book]
+        default: check
+        required: true
+      opening_date:
+        description: Auckland opening date (YYYY-MM-DD), not the class date
+        required: true
+        type: string
+      target_index:
+        description: Zero-based schedule.json entry
+        required: true
+        type: string
+      account_index:
+        description: 0=Kibum, 1=Haejin
+        required: true
+        type: string
+      dispatch_key:
+        description: Unique run label used by the dispatcher
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: influx-${{ inputs.mode }}-${{ inputs.opening_date }}-${{ inputs.target_index }}-${{ inputs.account_index }}
+  cancel-in-progress: false
 
 jobs:
   book:
     runs-on: ubuntu-latest
-    timeout-minutes: 200
+    timeout-minutes: 45
+    env:
+      OPENING_DATE: ${{ inputs.opening_date }}
+      TARGET_INDEX: ${{ inputs.target_index }}
+      ACCOUNT_INDEX: ${{ inputs.account_index }}
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run booker
-        run: node book.js
+          node-version: '22'
+      - name: Read-only check
+        if: inputs.mode == 'check'
+        run: node book.js check --opening-date "$OPENING_DATE" --target-index "$TARGET_INDEX" --account-index "$ACCOUNT_INDEX" --output check-result.json
         env:
           INFLUX_TOKEN_1: ${{ secrets.INFLUX_TOKEN_1 }}
           INFLUX_TOKEN_2: ${{ secrets.INFLUX_TOKEN_2 }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          TZ: Pacific/Auckland
-
-      - name: Notify on failure
-        if: failure()
-        run: |
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            -d text="❌ InfluxBooker 실패: $(TZ=Pacific/Auckland date '+%Y-%m-%d %a %H:%M')"
+      - name: Prepare booking
+        id: prepare
+        if: inputs.mode == 'book'
+        run: node book.js prepare --opening-date "$OPENING_DATE" --target-index "$TARGET_INDEX" --account-index "$ACCOUNT_INDEX" --output prepared.json
+        env:
+          INFLUX_TOKEN_1: ${{ secrets.INFLUX_TOKEN_1 }}
+          INFLUX_TOKEN_2: ${{ secrets.INFLUX_TOKEN_2 }}
+      - name: Ready to book
+        if: inputs.mode == 'book' && steps.prepare.outputs.booking_ready == 'true'
+        run: echo 'Session resolved; waiting for the Auckland opening time.'
+      - name: Book at opening
+        if: inputs.mode == 'book'
+        run: node book.js book --opening-date "$OPENING_DATE" --target-index "$TARGET_INDEX" --account-index "$ACCOUNT_INDEX" --prepared prepared.json --output booking-result.json
+        env:
+          INFLUX_TOKEN_1: ${{ secrets.INFLUX_TOKEN_1 }}
+          INFLUX_TOKEN_2: ${{ secrets.INFLUX_TOKEN_2 }}
+      - name: Report booking
+        if: always() && inputs.mode == 'book'
+        run: node book.js alert --opening-date "$OPENING_DATE" --target-index "$TARGET_INDEX" --account-index "$ACCOUNT_INDEX" --prepared prepared.json --result booking-result.json
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: influx-${{ inputs.dispatch_key }}-${{ github.run_id }}
+          path: |
+            check-result.json
+            prepared.json
+            booking-result.json
+          if-no-files-found: ignore
+          retention-days: 30
