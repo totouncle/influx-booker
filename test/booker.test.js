@@ -73,15 +73,26 @@ test('missing session can be resolved when the service publishes it at opening',
   const r = rig(job.openAt - 1000, request => ({ body: request.method === 'GET' ? [session()] : { visit: { state: 'booked' } } }));
   const result = await executeBooking(prepared({ ready: false, session: null }), 'token', r);
   assert.equal(result.success, true);
-  assert.equal(r.requests.find(x => x.method === 'POST').at, job.openAt);
+  assert.equal(r.requests.find(x => x.method === 'POST').at, job.openAt + 5_000);
 });
-test('prefetch happens before opening and first POST has no fixed five-second delay', async () => {
+test('prefetch happens before opening and the first POST preserves the five-second offset', async () => {
   const r = rig(job.openAt - 60_000, request => ({ body: request.method === 'GET' ? [session()] : { visit: { state: 'booked' } } }));
   const result = await executeBooking(prepared(), 'token', r);
   assert.equal(result.success, true);
   assert.equal(r.requests[0].at, job.openAt - 10_000);
-  assert.equal(r.requests.find(x => x.method === 'POST').at, job.openAt);
-  assert.equal(result.requestDelayMs, 0);
+  assert.equal(r.requests.find(x => x.method === 'POST').at, job.openAt + 5_000);
+  assert.equal(result.requestDelayMs, 5_000);
+  assert.equal(result.requestLatenessMs, 0);
+  assert.equal(result.late, false);
+  assert.equal(result.plannedRequestAt, job.openAt + 5_000);
+  assert.ok(!r.events.some(e => e.event === 'late_start'));
+});
+test('a runner starting inside the five-second buffer still waits until the planned request', async () => {
+  const r = rig(job.openAt + 2_000);
+  const result = await executeBooking(prepared(), 'token', r);
+  assert.equal(r.requests.find(x => x.method === 'POST').at, job.openAt + 5_000);
+  assert.equal(result.requestLatenessMs, 0);
+  assert.ok(!r.events.some(e => e.event === 'late_start'));
 });
 test('known booked visits never produce another POST', async () => {
   const r = rig();

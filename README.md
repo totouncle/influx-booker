@@ -8,11 +8,11 @@ The Mac must remain powered on, connected to the internet, and logged in. The La
 
 - `schedule.json` retains its existing contract: `dayOfWeek` is the Auckland **opening day**; the class date is opening date plus eight calendar days.
 - Both summer and winter are calculated using `Pacific/Auckland`. No paired UTC cron entries are needed.
-- Preparation resolves the session before opening. A final read occurs ten seconds before opening, and the first booking POST starts at opening with no fixed five-second delay.
+- Preparation resolves the session before opening. A final read occurs ten seconds before opening, and the first booking POST starts **five seconds after opening**, preserving the requested safety buffer.
 - A session not yet published can be resolved at opening. Explicit not-open responses get short bounded retries. Membership/authentication failures stop that account only.
 - Known booked visits are never resubmitted. Ambiguous writes are read back before further action; failed verification or an uncertain unbooked write stops automatic writes.
 - Existing six-hour late recovery is retained after an outage. Late requests are explicitly flagged and are not evidence of punctual execution. Each booking sequence is bounded to eight attempts and a one-minute request window.
-- Logs/artifacts contain the scheduled opening, first POST timestamp, delay, confirmation time, and final status. Credentials and raw API response bodies are not logged or saved.
+- Logs/artifacts contain the scheduled opening, planned request (opening + five seconds), first POST timestamp, confirmation time, and final status. They distinguish elapsed time since opening from lateness against the planned request, so the intentional five-second buffer is not flagged as an execution delay. Credentials and raw API response bodies are not logged or saved.
 - Booking results and failures use the existing Telegram/Slack Secrets. A missing `Ready to book` confirmation one minute before opening also raises a local macOS notification and a durable dispatcher log entry.
 
 ## Local dispatcher
